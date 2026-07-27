@@ -11,6 +11,8 @@ internal static class KeySequenceParser
         {
             ["ENTREE"] = (0x0D, "Entrée"),
             ["ENTER"] = (0x0D, "Entrée"),
+            ["ENTRER"] = (0x0D, "Entrée"),
+            ["ENTREER"] = (0x0D, "Entrée"),
             ["RETOUR"] = (0x0D, "Entrée"),
             ["TAB"] = (0x09, "Tab"),
             ["TABULATION"] = (0x09, "Tab"),
@@ -85,6 +87,7 @@ internal static class KeySequenceParser
             switch (Normalize(part))
             {
                 case "CTRL":
+                case "CRTL":
                 case "CONTROL":
                     modifiers |= HotkeyModifiers.Control;
                     break;

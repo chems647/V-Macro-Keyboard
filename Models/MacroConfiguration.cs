@@ -2,14 +2,14 @@ namespace MacroFenetre.Models;
 
 public sealed class MacroConfiguration
 {
-    public const int CurrentFormatVersion = 2;
+    public const int CurrentFormatVersion = 3;
 
     public int FormatVersion { get; set; } = CurrentFormatVersion;
     public KeyConfiguration SwitchKey { get; set; } = KeyConfiguration.From(KeyChoice.F8);
     public List<WindowConfiguration> SelectedWindows { get; set; } = [];
     public List<ClickMacroConfiguration> Macros { get; set; } = [];
     public List<ActionSequenceConfiguration> ActionSequences { get; set; } = [];
-    public int ActionSequenceDelayMs { get; set; } = 80;
+    public int ActionSequenceDelayMs { get; set; } = 150;
     public int StabilizationDelayMs { get; set; } = 260;
     public bool RestoreCursor { get; set; } = true;
     public bool ShortcutsEnabled { get; set; } = true;
@@ -19,6 +19,8 @@ public sealed class ActionSequenceConfiguration
 {
     public InputTriggerConfiguration Trigger { get; set; } = new();
     public List<KeyConfiguration> Actions { get; set; } = [];
+    public string WindowTitle { get; set; } = string.Empty;
+    public string ProcessName { get; set; } = string.Empty;
 }
 
 public sealed class InputTriggerConfiguration

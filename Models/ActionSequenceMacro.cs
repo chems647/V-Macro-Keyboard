@@ -26,7 +26,11 @@ public sealed class ActionSequenceMacro
 {
     public required InputTrigger Trigger { get; init; }
     public required IReadOnlyList<KeyChoice> Actions { get; init; }
+    public required string WindowTitle { get; init; }
+    public required string ProcessName { get; init; }
+    public nint WindowHandle { get; set; }
 
     public string TriggerDisplay => Trigger.Name;
+    public string TargetDisplay => $"{ProcessName}  ·  {WindowTitle}";
     public string ActionsDisplay => string.Join("  →  ", Actions.Select(action => action.Name));
 }

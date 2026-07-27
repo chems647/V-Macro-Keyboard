@@ -35,7 +35,8 @@ Le programme n’est pas encore signé avec un certificat commercial. Windows Sm
 - Clics enregistrés à une position relative ou précise dans une fenêtre.
 - Application d’un même clic à plusieurs fenêtres sélectionnées du même logiciel.
 - Déclencheurs sur le clavier, le bouton du milieu et les boutons latéraux de la souris.
-- Séquences comme `T, Ctrl+V, Entrée`, avec délai réglable entre les actions.
+- Séquences comme `Espace, Ctrl+V, Entrée`, avec délai réglable entre les actions.
+- Fenêtre cible enregistrée pour chaque séquence, même avec plusieurs écrans ou fenêtres Dofus.
 - Profils portables et sauvegarde automatique.
 - Interrupteur global pour suspendre immédiatement les raccourcis.
 
@@ -53,10 +54,10 @@ Les règles des jeux et services pouvant évoluer, chaque utilisateur reste resp
 4. Pour une séquence, choisissez un déclencheur et saisissez les actions séparées par des virgules.
 5. Utilisez **Enregistrer** pour créer un profil portable.
 
-Exemple de séquence :
+Exemple Dofus pour ouvrir le chat, coller une position puis la valider :
 
 ```text
-T, Ctrl+V, Entrée
+Espace, Ctrl+V, Entrée
 ```
 
 ## Profils et migration

@@ -112,7 +112,7 @@ internal static class ConfigurationService
         configuration.Macros ??= [];
         configuration.ActionSequences ??= [];
         configuration.ActionSequenceDelayMs = configuration.ActionSequenceDelayMs <= 0
-            ? 80
+            ? 150
             : configuration.ActionSequenceDelayMs;
         configuration.StabilizationDelayMs = configuration.StabilizationDelayMs <= 0
             ? 260

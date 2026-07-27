@@ -34,7 +34,9 @@ public sealed class ConfigurationServiceTests : IDisposable
                     [
                         KeyConfiguration.From(new KeyChoice("T", 0x54)),
                         KeyConfiguration.From(new KeyChoice("Entrée", 0x0D))
-                    ]
+                    ],
+                    ProcessName = "Dofus",
+                    WindowTitle = "Dofus - Personnage"
                 }
             ]
         };
@@ -48,6 +50,8 @@ public sealed class ConfigurationServiceTests : IDisposable
         Assert.Equal(InputTriggerKind.Mouse, sequence.Trigger.Kind);
         Assert.Equal(GlobalMouseHook.SideButton1, sequence.Trigger.Code);
         Assert.Equal(2, sequence.Actions.Count);
+        Assert.Equal("Dofus", sequence.ProcessName);
+        Assert.Equal("Dofus - Personnage", sequence.WindowTitle);
     }
 
     [Fact]
@@ -70,7 +74,7 @@ public sealed class ConfigurationServiceTests : IDisposable
 
         Assert.Equal(MacroConfiguration.CurrentFormatVersion, loaded.FormatVersion);
         Assert.Empty(loaded.ActionSequences);
-        Assert.Equal(80, loaded.ActionSequenceDelayMs);
+        Assert.Equal(150, loaded.ActionSequenceDelayMs);
     }
 
     [Fact]

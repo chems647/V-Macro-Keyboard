@@ -321,10 +321,12 @@
 
                         <Grid Margin="0,18,0,0">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="180" />
-                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="145" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="230" />
+                                <ColumnDefinition Width="14" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="14" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel>
@@ -349,15 +351,22 @@
                                 <TextBlock Margin="0,0,0,5"
                                            FontSize="12"
                                            Foreground="{StaticResource MutedBrush}"
+                                           Text="FENÊTRE CIBLE" />
+                                <ComboBox x:Name="SequenceTargetCombo" DisplayMemberPath="DisplayName" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Margin="0,0,0,5"
+                                           FontSize="12"
+                                           Foreground="{StaticResource MutedBrush}"
                                            Text="ACTIONS, SÉPARÉES PAR DES VIRGULES" />
                                 <TextBox x:Name="SequenceActionsTextBox"
                                          Height="36"
                                          Padding="9,6"
                                          VerticalContentAlignment="Center"
-                                         Text="T, Ctrl+V, Entrée"
-                                         ToolTip="Exemple : T, Ctrl+V, Entrée" />
+                                         Text="Espace, Ctrl+V, Entrée"
+                                         ToolTip="Exemple Dofus : Espace, Ctrl+V, Entrée" />
                             </StackPanel>
-                            <StackPanel Grid.Column="4" Margin="0,21,0,0" Orientation="Horizontal">
+                            <StackPanel Grid.Column="6" Margin="0,21,0,0" Orientation="Horizontal">
                                 <Button x:Name="AddSequenceButton"
                                         Style="{StaticResource PrimaryButton}"
                                         Click="AddActionSequence_Click"
@@ -373,7 +382,7 @@
                         <Border Margin="0,14,0,0" Padding="12" Background="{StaticResource InfoBrush}" CornerRadius="8">
                             <TextBlock Foreground="{StaticResource InfoInkBrush}"
                                        TextWrapping="Wrap"
-                                       Text="Exemple : « T, Ctrl+V, Entrée ». Les déclencheurs souris disponibles sont le bouton du milieu et les deux boutons latéraux." />
+                                       Text="Dofus : « Espace, Ctrl+V, Entrée » ouvre le chat, colle une position puis valide dans la fenêtre cible choisie." />
                         </Border>
 
                         <DataGrid x:Name="ActionSequencesGrid"
@@ -388,7 +397,8 @@
                                   IsReadOnly="True"
                                   RowHeaderWidth="0">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Width="170" Header="Déclencheur" Binding="{Binding TriggerDisplay}" />
+                                <DataGridTextColumn Width="150" Header="Déclencheur" Binding="{Binding TriggerDisplay}" />
+                                <DataGridTextColumn Width="250" Header="Fenêtre cible" Binding="{Binding TargetDisplay}" />
                                 <DataGridTextColumn Width="*" Header="Actions" Binding="{Binding ActionsDisplay}" />
                                 <DataGridTemplateColumn Width="185" Header="">
                                     <DataGridTemplateColumn.CellTemplate>
@@ -420,18 +430,18 @@
                             <Slider x:Name="ActionSequenceDelaySlider"
                                     Grid.Column="1"
                                     Margin="16,0"
-                                    Minimum="30"
+                                    Minimum="100"
                                     Maximum="500"
                                     TickFrequency="10"
                                     IsSnapToTickEnabled="True"
-                                    Value="80"
+                                    Value="150"
                                     ValueChanged="ActionSequenceDelaySlider_ValueChanged" />
                             <TextBlock x:Name="ActionSequenceDelayText"
                                        Grid.Column="2"
                                        VerticalAlignment="Center"
                                        HorizontalAlignment="Right"
                                        Foreground="{StaticResource MutedBrush}"
-                                       Text="80 ms" />
+                                       Text="150 ms" />
                         </Grid>
                     </StackPanel>
                 </Border>

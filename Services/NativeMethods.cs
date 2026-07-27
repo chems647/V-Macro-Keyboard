@@ -24,6 +24,8 @@ internal static class NativeMethods
     internal const uint InputKeyboard = 1;
     internal const uint KeyEventExtendedKey = 0x0001;
     internal const uint KeyEventKeyUp = 0x0002;
+    internal const uint KeyEventScanCode = 0x0008;
+    internal const uint MapVkToVscEx = 4;
     internal const uint LlkhfInjected = 0x00000010;
     internal const uint LlmhfInjected = 0x00000001;
     internal const uint GaRoot = 2;
@@ -186,6 +188,9 @@ internal static class NativeMethods
 
     [DllImport("user32.dll", SetLastError = true)]
     internal static extern uint SendInput(uint inputCount, Input[] inputs, int inputSize);
+
+    [DllImport("user32.dll")]
+    internal static extern uint MapVirtualKey(uint code, uint mapType);
 
     [DllImport("user32.dll")]
     internal static extern short GetAsyncKeyState(int virtualKey);

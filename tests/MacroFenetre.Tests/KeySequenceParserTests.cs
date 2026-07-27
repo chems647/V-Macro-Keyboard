@@ -21,10 +21,27 @@ public sealed class KeySequenceParserTests
             action => Assert.Equal(new KeyChoice("Entrée", 0x0D), action));
     }
 
+    [Fact]
+    public void ParseBuildsDofusPositionSequence()
+    {
+        var parsed = KeySequenceParser.TryParse(
+            "Espace, Ctrl+V, Entrée",
+            out var actions,
+            out var error);
+
+        Assert.True(parsed, error);
+        Assert.Collection(
+            actions,
+            action => Assert.Equal(new KeyChoice("Espace", 0x20), action),
+            action => Assert.Equal(new KeyChoice("Ctrl + V", 0x56, HotkeyModifiers.Control), action),
+            action => Assert.Equal(new KeyChoice("Entrée", 0x0D), action));
+    }
+
     [Theory]
     [InlineData("Maj+F5; Alt+Tab; Pavé 3", 3)]
     [InlineData("Gauche, Haut, Droite, Bas", 4)]
     [InlineData("Windows+R", 1)]
+    [InlineData("Espace, Crtl+V, Entreer", 3)]
     public void ParseAcceptsSupportedAliases(string text, int expectedCount)
     {
         var parsed = KeySequenceParser.TryParse(text, out var actions, out var error);

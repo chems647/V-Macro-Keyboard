@@ -46,6 +46,7 @@ public partial class MainWindow : Window
     private InputTrigger? _sequenceTriggerBeforeEdit;
     private string? _sequenceActionsBeforeEdit;
     private nint? _targetHandleBeforeEdit;
+    private nint? _sequenceTargetHandleBeforeEdit;
     private TextBox? _activeKeyInput;
     private KeyChoice _switchKey = KeyChoice.F8;
     private KeyChoice _macroKey = KeyChoice.F6;
@@ -74,6 +75,7 @@ public partial class MainWindow : Window
     {
         WindowsList.ItemsSource = _windowGroups;
         MacroTargetCombo.ItemsSource = _selectedWindows;
+        SequenceTargetCombo.ItemsSource = _selectedWindows;
         MacrosGrid.ItemsSource = _macros;
         ActionSequencesGrid.ItemsSource = _actionSequences;
         SwitchKeyTextBox.Text = _switchKey.Name;
@@ -282,6 +284,7 @@ public partial class MainWindow : Window
     private void RebuildSelectedWindows()
     {
         var previousTargetHandle = (MacroTargetCombo.SelectedItem as WindowItem)?.Handle;
+        var previousSequenceTargetHandle = (SequenceTargetCombo.SelectedItem as WindowItem)?.Handle;
         var selected = _windows.Where(window => window.IsSelected).ToArray();
 
         _selectedWindows.Clear();
@@ -292,7 +295,11 @@ public partial class MainWindow : Window
 
         MacroTargetCombo.SelectedItem = _selectedWindows.FirstOrDefault(window => window.Handle == previousTargetHandle)
                                         ?? _selectedWindows.FirstOrDefault();
+        SequenceTargetCombo.SelectedItem =
+            _selectedWindows.FirstOrDefault(window => window.Handle == previousSequenceTargetHandle)
+            ?? _selectedWindows.FirstOrDefault();
         CaptureButton.IsEnabled = _selectedWindows.Count > 0 && !_isCapturing;
+        AddSequenceButton.IsEnabled = _selectedWindows.Count > 0;
 
         SelectedWindowCount.Text = _selectedWindows.Count switch
         {
@@ -604,6 +611,13 @@ public partial class MainWindow : Window
 
     private async Task<bool> ActivateAndWaitAsync(nint handle, int settleDelayMs)
     {
+        if (NativeMethods.GetForegroundWindow() == handle &&
+            WindowService.TryGetClientArea(handle, out _, out _, out _))
+        {
+            await Task.Delay(settleDelayMs);
+            return NativeMethods.GetForegroundWindow() == handle;
+        }
+
         for (var attempt = 0; attempt < 4; attempt++)
         {
             WindowService.ActivateWindow(handle);
@@ -1035,9 +1049,25 @@ public partial class MainWindow : Window
                 return;
             }
 
+            var targetHandle = ResolveActionSequenceTarget(sequence);
+            if (targetHandle == nint.Zero ||
+                !await ActivateAndWaitAsync(targetHandle, Math.Max(120, ActionSequenceDelayMs)))
+            {
+                SetStatus(
+                    $"La fenêtre cible « {sequence.TargetDisplay} » n’est plus disponible.",
+                    StatusKind.Error);
+                return;
+            }
+
             foreach (var action in sequence.Actions)
             {
-                if (!SendKeyboardAction(action))
+                if (NativeMethods.GetForegroundWindow() != targetHandle &&
+                    !await ActivateAndWaitAsync(targetHandle, Math.Max(80, ActionSequenceDelayMs)))
+                {
+                    break;
+                }
+
+                if (!await SendKeyboardActionAsync(action))
                 {
                     break;
                 }
@@ -1054,41 +1084,64 @@ public partial class MainWindow : Window
 
         SetStatus(
             completedActions == sequence.Actions.Count
-                ? $"Séquence {sequence.Trigger.Name} exécutée."
+                ? $"Séquence {sequence.Trigger.Name} exécutée dans {sequence.TargetDisplay}."
                 : $"La séquence {sequence.Trigger.Name} s’est arrêtée après {completedActions} action(s).",
             completedActions == sequence.Actions.Count ? StatusKind.Ready : StatusKind.Error);
     }
 
-    private static bool SendKeyboardAction(KeyChoice action)
+    private static async Task<bool> SendKeyboardActionAsync(KeyChoice action)
     {
         var modifiers = GetModifierVirtualKeys(action.Modifiers);
-        var inputs = new NativeMethods.Input[2 + (modifiers.Count * 2)];
-        var inputIndex = 0;
-
-        foreach (var modifier in modifiers)
+        if (modifiers.Count > 0)
         {
-            inputs[inputIndex++] = CreateKeyboardInput(modifier, false);
+            var modifierDownInputs = modifiers
+                .Select(modifier => CreateKeyboardInput(modifier, false))
+                .ToArray();
+            if (!SendKeyboardInputs(modifierDownInputs))
+            {
+                ReleaseGeneratedKeys(action, modifiers);
+                return false;
+            }
+
+            await Task.Delay(15);
         }
 
-        inputs[inputIndex++] = CreateKeyboardInput(action.VirtualKey, false);
-        inputs[inputIndex++] = CreateKeyboardInput(action.VirtualKey, true);
-
-        for (var index = modifiers.Count - 1; index >= 0; index--)
+        if (!SendKeyboardInputs([CreateKeyboardInput(action.VirtualKey, false)]))
         {
-            inputs[inputIndex++] = CreateKeyboardInput(modifiers[index], true);
+            ReleaseGeneratedKeys(action, modifiers);
+            return false;
         }
 
-        var sentCount = NativeMethods.SendInput(
-            (uint)inputs.Length,
-            inputs,
-            Marshal.SizeOf<NativeMethods.Input>());
-        if (sentCount == (uint)inputs.Length)
+        await Task.Delay(35);
+        if (!SendKeyboardInputs([CreateKeyboardInput(action.VirtualKey, true)]))
         {
-            return true;
+            ReleaseGeneratedKeys(action, modifiers);
+            return false;
         }
 
-        ReleaseGeneratedKeys(action, modifiers);
-        return false;
+        if (modifiers.Count > 0)
+        {
+            await Task.Delay(10);
+            var modifierUpInputs = modifiers
+                .Reverse<int>()
+                .Select(modifier => CreateKeyboardInput(modifier, true))
+                .ToArray();
+            if (!SendKeyboardInputs(modifierUpInputs))
+            {
+                ReleaseGeneratedKeys(action, modifiers);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool SendKeyboardInputs(NativeMethods.Input[] inputs)
+    {
+        return NativeMethods.SendInput(
+                   (uint)inputs.Length,
+                   inputs,
+                   Marshal.SizeOf<NativeMethods.Input>()) == (uint)inputs.Length;
     }
 
     private static void ReleaseGeneratedKeys(KeyChoice action, IReadOnlyList<int> modifiers)
@@ -1108,7 +1161,13 @@ public partial class MainWindow : Window
 
     private static NativeMethods.Input CreateKeyboardInput(int virtualKey, bool isKeyUp)
     {
-        var flags = IsExtendedKey(virtualKey) ? NativeMethods.KeyEventExtendedKey : 0;
+        var scanCode = NativeMethods.MapVirtualKey((uint)virtualKey, NativeMethods.MapVkToVscEx);
+        var flags = NativeMethods.KeyEventScanCode;
+        if (IsExtendedKey(virtualKey) || (scanCode & 0xFF00) is 0xE000 or 0xE100)
+        {
+            flags |= NativeMethods.KeyEventExtendedKey;
+        }
+
         if (isKeyUp)
         {
             flags |= NativeMethods.KeyEventKeyUp;
@@ -1121,7 +1180,8 @@ public partial class MainWindow : Window
             {
                 Keyboard = new NativeMethods.KeyboardInput
                 {
-                    VirtualKey = (ushort)virtualKey,
+                    VirtualKey = 0,
+                    ScanCode = (ushort)(scanCode & 0xFF),
                     Flags = flags
                 }
             }
@@ -1184,6 +1244,25 @@ public partial class MainWindow : Window
         var currentWindows = WindowService.EnumerateVisibleWindows(ownHandle);
         var replacement = FindBestWindow(currentWindows, macro.ProcessName, macro.WindowTitle);
         return replacement is null ? [] : [replacement.Handle];
+    }
+
+    private nint ResolveActionSequenceTarget(ActionSequenceMacro sequence)
+    {
+        if (NativeMethods.IsWindow(sequence.WindowHandle))
+        {
+            return sequence.WindowHandle;
+        }
+
+        var ownHandle = new WindowInteropHelper(this).Handle;
+        var currentWindows = WindowService.EnumerateVisibleWindows(ownHandle);
+        var replacement = FindBestWindow(currentWindows, sequence.ProcessName, sequence.WindowTitle);
+        if (replacement is null)
+        {
+            return nint.Zero;
+        }
+
+        sequence.WindowHandle = replacement.Handle;
+        return replacement.Handle;
     }
 
     private void EditMacro_Click(object sender, RoutedEventArgs e)
@@ -1272,6 +1351,12 @@ public partial class MainWindow : Window
 
     private void AddActionSequence_Click(object sender, RoutedEventArgs e)
     {
+        if (SequenceTargetCombo.SelectedItem is not WindowItem target)
+        {
+            SetStatus("Sélectionnez d’abord une fenêtre cible pour cette séquence.", StatusKind.Error);
+            return;
+        }
+
         if (!KeySequenceParser.TryParse(SequenceActionsTextBox.Text, out var actions, out var error))
         {
             SetStatus(error, StatusKind.Error);
@@ -1287,7 +1372,10 @@ public partial class MainWindow : Window
         var sequence = new ActionSequenceMacro
         {
             Trigger = _sequenceTrigger,
-            Actions = actions
+            Actions = actions,
+            WindowHandle = target.Handle,
+            WindowTitle = target.Title,
+            ProcessName = target.ProcessName
         };
 
         var editedIndex = _editingActionSequence is null ? -1 : _actionSequences.IndexOf(_editingActionSequence);
@@ -1313,6 +1401,21 @@ public partial class MainWindow : Window
             return;
         }
 
+        var target = _selectedWindows.FirstOrDefault(window => window.Handle == sequence.WindowHandle)
+                     ?? _selectedWindows.FirstOrDefault(window =>
+                         window.ProcessName.Equals(sequence.ProcessName, StringComparison.CurrentCultureIgnoreCase) &&
+                         TitlesLikelyMatch(window.Title, sequence.WindowTitle));
+        if (target is null)
+        {
+            MessageBox.Show(
+                this,
+                "La fenêtre cible n’est plus sélectionnée. Cochez-la dans l’option 1 puis actualisez avant de modifier cette séquence.",
+                "Fenêtre cible indisponible",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
         if (_editingActionSequence is not null)
         {
             ResetActionSequenceEditState(true);
@@ -1320,9 +1423,11 @@ public partial class MainWindow : Window
 
         _sequenceTriggerBeforeEdit = _sequenceTrigger;
         _sequenceActionsBeforeEdit = SequenceActionsTextBox.Text;
+        _sequenceTargetHandleBeforeEdit = (SequenceTargetCombo.SelectedItem as WindowItem)?.Handle;
         _editingActionSequence = sequence;
         _sequenceTrigger = sequence.Trigger;
         SequenceTriggerTextBox.Text = sequence.Trigger.Name;
+        SequenceTargetCombo.SelectedItem = target;
         SequenceActionsTextBox.Text = string.Join(", ", sequence.Actions.Select(action => action.Name));
         AddSequenceButton.Content = "Enregistrer";
         CancelSequenceEditButton.Visibility = Visibility.Visible;
@@ -1358,17 +1463,22 @@ public partial class MainWindow : Window
         {
             _sequenceTrigger = _sequenceTriggerBeforeEdit;
             SequenceActionsTextBox.Text = _sequenceActionsBeforeEdit ?? string.Empty;
+            SequenceTargetCombo.SelectedItem =
+                _selectedWindows.FirstOrDefault(window => window.Handle == _sequenceTargetHandleBeforeEdit)
+                ?? _selectedWindows.FirstOrDefault();
         }
         else
         {
             _sequenceTrigger = FindAvailableSequenceTrigger();
-            SequenceActionsTextBox.Text = "T, Ctrl+V, Entrée";
+            SequenceActionsTextBox.Text = "Espace, Ctrl+V, Entrée";
+            SequenceTargetCombo.SelectedItem = _selectedWindows.FirstOrDefault();
         }
 
         SequenceTriggerTextBox.Text = _sequenceTrigger.Name;
         _editingActionSequence = null;
         _sequenceTriggerBeforeEdit = null;
         _sequenceActionsBeforeEdit = null;
+        _sequenceTargetHandleBeforeEdit = null;
         AddSequenceButton.Content = "Ajouter";
         CancelSequenceEditButton.Visibility = Visibility.Collapsed;
     }
@@ -1481,7 +1591,9 @@ public partial class MainWindow : Window
                 .Select(sequence => new ActionSequenceConfiguration
                 {
                     Trigger = InputTriggerConfiguration.From(sequence.Trigger),
-                    Actions = sequence.Actions.Select(KeyConfiguration.From).ToList()
+                    Actions = sequence.Actions.Select(KeyConfiguration.From).ToList(),
+                    WindowTitle = sequence.WindowTitle,
+                    ProcessName = sequence.ProcessName
                 })
                 .ToList(),
             ActionSequenceDelayMs = ActionSequenceDelayMs,
@@ -1502,7 +1614,7 @@ public partial class MainWindow : Window
             _switchKey = configuration.SwitchKey.ToKeyChoice(KeyChoice.F8);
             SwitchKeyTextBox.Text = _switchKey.Name;
             StabilizationDelaySlider.Value = Math.Clamp(configuration.StabilizationDelayMs, 100, 1200);
-            ActionSequenceDelaySlider.Value = Math.Clamp(configuration.ActionSequenceDelayMs, 30, 500);
+            ActionSequenceDelaySlider.Value = Math.Clamp(configuration.ActionSequenceDelayMs, 100, 500);
             RestoreCursorToggle.IsChecked = configuration.RestoreCursor;
             MasterToggle.IsChecked = configuration.ShortcutsEnabled;
             _shortcutsEnabled = configuration.ShortcutsEnabled;
@@ -1560,10 +1672,20 @@ public partial class MainWindow : Window
                     .Where(action => action.VirtualKey != 0)
                     .Select(action => action.ToKeyChoice(KeyChoice.F6))
                     .ToList();
+                var target = string.IsNullOrWhiteSpace(savedSequence.ProcessName)
+                    ? _windows.FirstOrDefault(window => window.IsSelected)
+                    : FindBestWindow(savedSequence.ProcessName, savedSequence.WindowTitle);
+                var processName = string.IsNullOrWhiteSpace(savedSequence.ProcessName)
+                    ? target?.ProcessName ?? string.Empty
+                    : savedSequence.ProcessName;
+                var windowTitle = string.IsNullOrWhiteSpace(savedSequence.WindowTitle)
+                    ? target?.Title ?? string.Empty
+                    : savedSequence.WindowTitle;
 
                 if (trigger is null ||
                     trigger.Code == 0 ||
                     actions.Count == 0 ||
+                    string.IsNullOrWhiteSpace(processName) ||
                     TriggerConflicts(trigger))
                 {
                     continue;
@@ -1572,7 +1694,10 @@ public partial class MainWindow : Window
                 _actionSequences.Add(new ActionSequenceMacro
                 {
                     Trigger = trigger,
-                    Actions = actions
+                    Actions = actions,
+                    WindowHandle = target?.Handle ?? nint.Zero,
+                    WindowTitle = windowTitle,
+                    ProcessName = processName
                 });
             }
 
