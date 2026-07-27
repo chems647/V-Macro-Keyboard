@@ -1,0 +1,450 @@
+<Window x:Class="MacroFenetre.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MacroFenêtre"
+        Width="930"
+        Height="760"
+        MinWidth="760"
+        MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#172033" Padding="30,22">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="MacroFenêtre" Foreground="White" FontSize="25" FontWeight="SemiBold" />
+                    <TextBlock Margin="0,5,0,0"
+                               Text="Changez de fenêtre, déclenchez vos clics et automatisez vos frappes."
+                               Foreground="#BFC7D8"
+                               FontSize="14" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Margin="0,0,8,0"
+                            Padding="12,6"
+                            Click="LoadConfiguration_Click"
+                            Content="Charger" />
+                    <Button Margin="0,0,18,0"
+                            Padding="12,6"
+                            Click="SaveConfiguration_Click"
+                            Content="Enregistrer" />
+                    <CheckBox x:Name="MasterToggle"
+                              IsChecked="True"
+                              Checked="MasterToggle_Changed"
+                              Unchecked="MasterToggle_Changed"
+                              Foreground="White"
+                              FontWeight="SemiBold"
+                              Content="Raccourcis actifs" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="26,22,26,26">
+                <Border Background="{StaticResource PanelBrush}"
+                        BorderBrush="{StaticResource LineBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="22">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="1. Fenêtres autorisées" />
+                                <TextBlock Margin="0,5,0,0"
+                                           Foreground="{StaticResource MutedBrush}"
+                                           Text="Cochez uniquement les fenêtres entre lesquelles vous voulez naviguer." />
+                            </StackPanel>
+                            <Button Grid.Column="1" Click="RefreshWindows_Click" Content="Actualiser" />
+                        </Grid>
+
+                        <TextBox x:Name="WindowSearchBox"
+                                 Margin="0,17,0,10"
+                                 Height="36"
+                                 Padding="10,6"
+                                 VerticalContentAlignment="Center"
+                                 TextChanged="WindowSearchBox_TextChanged"
+                                 ToolTip="Filtrer par application ou titre de fenêtre" />
+
+                        <Border BorderBrush="{StaticResource LineBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                MaxHeight="250">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="WindowsList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Expander IsExpanded="{Binding IsExpanded, Mode=TwoWay}"
+                                                      HorizontalContentAlignment="Stretch">
+                                                <Expander.Header>
+                                                    <Grid Margin="6,8,10,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <CheckBox Margin="5,0,10,0"
+                                                                  IsThreeState="True"
+                                                                  IsChecked="{Binding SelectionState, Mode=OneWay}"
+                                                                  Click="GroupSelection_Click" />
+                                                        <TextBlock Grid.Column="1"
+                                                                   VerticalAlignment="Center"
+                                                                   FontWeight="SemiBold"
+                                                                   Text="{Binding ProcessName}" />
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                            <TextBlock Foreground="{StaticResource MutedBrush}" Text="{Binding SelectedDisplay}" />
+                                                            <TextBlock Margin="5,0,0,0" Foreground="{StaticResource MutedBrush}" Text="sélectionnées" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Expander.Header>
+                                                <ItemsControl Margin="27,0,8,8" ItemsSource="{Binding Windows}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <CheckBox Margin="8,7"
+                                                                      IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                      Checked="WindowSelection_Changed"
+                                                                      Unchecked="WindowSelection_Changed">
+                                                                <StackPanel>
+                                                                    <TextBlock MaxWidth="700"
+                                                                               Text="{Binding Title}"
+                                                                               TextTrimming="CharacterEllipsis" />
+                                                                    <TextBlock Margin="0,2,0,0"
+                                                                               FontSize="11"
+                                                                               Foreground="{StaticResource MutedBrush}"
+                                                                               Text="Sélection individuelle" />
+                                                                </StackPanel>
+                                                            </CheckBox>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Expander>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="110" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="SelectedWindowCount"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Text="0 fenêtre sélectionnée" />
+                            <TextBlock Grid.Column="1"
+                                       Margin="0,0,10,0"
+                                       VerticalAlignment="Center"
+                                       Text="Touche de bascule" />
+                            <TextBox x:Name="SwitchKeyTextBox"
+                                     Grid.Column="2"
+                                     Height="36"
+                                     Padding="9,6"
+                                     VerticalContentAlignment="Center"
+                                     HorizontalContentAlignment="Center"
+                                     IsReadOnly="True"
+                                     Cursor="Hand"
+                                     GotKeyboardFocus="KeyInput_GotKeyboardFocus"
+                                     LostKeyboardFocus="KeyInput_LostKeyboardFocus"
+                                     PreviewKeyDown="KeyInput_PreviewKeyDown"
+                                     PreviewKeyUp="KeyInput_PreviewKeyUp"
+                                     ToolTip="Cliquez puis appuyez sur la touche ou combinaison voulue" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Margin="0,18,0,0"
+                        Background="{StaticResource PanelBrush}"
+                        BorderBrush="{StaticResource LineBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="22">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="2. Clics associés à une touche" />
+                        <TextBlock Margin="0,5,0,0"
+                                   Foreground="{StaticResource MutedBrush}"
+                                   Text="Choisissez une cible et une touche, puis montrez l’endroit à cliquer." />
+
+                        <Grid Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Margin="0,0,0,5" FontSize="12" Foreground="{StaticResource MutedBrush}" Text="FENÊTRE CIBLE" />
+                                <ComboBox x:Name="MacroTargetCombo" DisplayMemberPath="DisplayName" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Margin="0,0,0,5" FontSize="12" Foreground="{StaticResource MutedBrush}" Text="TOUCHE" />
+                                <TextBox x:Name="MacroKeyTextBox"
+                                         Height="36"
+                                         Padding="9,6"
+                                         VerticalContentAlignment="Center"
+                                         HorizontalContentAlignment="Center"
+                                         IsReadOnly="True"
+                                         Cursor="Hand"
+                                         GotKeyboardFocus="KeyInput_GotKeyboardFocus"
+                                         LostKeyboardFocus="KeyInput_LostKeyboardFocus"
+                                         PreviewKeyDown="KeyInput_PreviewKeyDown"
+                                         PreviewKeyUp="KeyInput_PreviewKeyUp"
+                                         ToolTip="Cliquez puis appuyez sur la touche ou combinaison voulue" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Margin="0,21,0,0" Orientation="Horizontal">
+                                <Button x:Name="CaptureButton"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Click="CapturePoint_Click"
+                                        Content="Montrer le point" />
+                                <Button x:Name="CancelEditButton"
+                                        Margin="8,0,0,0"
+                                        Visibility="Collapsed"
+                                        Click="CancelEdit_Click"
+                                        Content="Annuler" />
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox x:Name="ApplyAllMatchingToggle"
+                                  Margin="0,13,0,0"
+                                  IsChecked="False"
+                                  Content="Appliquer ce clic à toutes les fenêtres sélectionnées du même logiciel" />
+
+                        <Border Margin="0,14,0,0" Padding="12" Background="#F0F1FF" CornerRadius="8">
+                            <TextBlock Foreground="#4146A7"
+                                       TextWrapping="Wrap"
+                                       Text="Cliquez dans un champ de touche puis tapez la touche ou combinaison voulue. Pendant « Montrer le point », les autres clics configurés apparaissent sur la cible. Le clic de configuration est intercepté. Échap annule." />
+                        </Border>
+
+                        <DataGrid x:Name="MacrosGrid"
+                                  Margin="0,16,0,0"
+                                  MaxHeight="210"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  IsReadOnly="True"
+                                  RowHeaderWidth="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Width="75" Header="Touche" Binding="{Binding KeyName}" />
+                                <DataGridTextColumn Width="*" Header="Cible" Binding="{Binding TargetDisplay}" />
+                                <DataGridTextColumn Width="105" Header="Position" Binding="{Binding PositionDisplay}" />
+                                <DataGridTemplateColumn Width="185" Header="">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Padding="8,3"
+                                                        Tag="{Binding}"
+                                                        Click="EditMacro_Click"
+                                                        Content="Modifier" />
+                                                <Button Margin="6,0,0,0"
+                                                        Padding="8,3"
+                                                        Tag="{Binding}"
+                                                        Click="DeleteMacro_Click"
+                                                        Content="Supprimer" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <CheckBox x:Name="RestoreCursorToggle"
+                                  Margin="0,14,0,0"
+                                  IsChecked="True"
+                                  Checked="PersistentSetting_Changed"
+                                  Unchecked="PersistentSetting_Changed"
+                                  Content="Remettre le pointeur à sa position initiale après le clic" />
+
+                        <Grid Margin="0,15,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="75" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Text="Attente après activation" />
+                            <Slider x:Name="StabilizationDelaySlider"
+                                    Grid.Column="1"
+                                    Margin="16,0"
+                                    Minimum="100"
+                                    Maximum="1200"
+                                    TickFrequency="50"
+                                    IsSnapToTickEnabled="True"
+                                    Value="260"
+                                    ToolTip="Augmentez cette valeur si une page ou une application met du temps à devenir interactive."
+                                    ValueChanged="StabilizationDelaySlider_ValueChanged" />
+                            <TextBlock x:Name="StabilizationDelayText"
+                                       Grid.Column="2"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Text="260 ms" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Margin="0,18,0,0"
+                        Background="{StaticResource PanelBrush}"
+                        BorderBrush="{StaticResource LineBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="22">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="3. Séquences de touches" />
+                        <TextBlock Margin="0,5,0,0"
+                                   Foreground="{StaticResource MutedBrush}"
+                                   Text="Déclenchez plusieurs frappes avec une touche clavier ou un bouton de souris." />
+
+                        <Grid Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Margin="0,0,0,5"
+                                           FontSize="12"
+                                           Foreground="{StaticResource MutedBrush}"
+                                           Text="DÉCLENCHEUR" />
+                                <TextBox x:Name="SequenceTriggerTextBox"
+                                         Height="36"
+                                         Padding="9,6"
+                                         VerticalContentAlignment="Center"
+                                         HorizontalContentAlignment="Center"
+                                         IsReadOnly="True"
+                                         Cursor="Hand"
+                                         GotKeyboardFocus="KeyInput_GotKeyboardFocus"
+                                         LostKeyboardFocus="KeyInput_LostKeyboardFocus"
+                                         PreviewKeyDown="KeyInput_PreviewKeyDown"
+                                         PreviewKeyUp="KeyInput_PreviewKeyUp"
+                                         ToolTip="Cliquez puis appuyez sur une touche, le bouton du milieu ou un bouton latéral" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Margin="0,0,0,5"
+                                           FontSize="12"
+                                           Foreground="{StaticResource MutedBrush}"
+                                           Text="ACTIONS, SÉPARÉES PAR DES VIRGULES" />
+                                <TextBox x:Name="SequenceActionsTextBox"
+                                         Height="36"
+                                         Padding="9,6"
+                                         VerticalContentAlignment="Center"
+                                         Text="T, Ctrl+V, Entrée"
+                                         ToolTip="Exemple : T, Ctrl+V, Entrée" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Margin="0,21,0,0" Orientation="Horizontal">
+                                <Button x:Name="AddSequenceButton"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Click="AddActionSequence_Click"
+                                        Content="Ajouter" />
+                                <Button x:Name="CancelSequenceEditButton"
+                                        Margin="8,0,0,0"
+                                        Visibility="Collapsed"
+                                        Click="CancelActionSequenceEdit_Click"
+                                        Content="Annuler" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Margin="0,14,0,0" Padding="12" Background="#F0F1FF" CornerRadius="8">
+                            <TextBlock Foreground="#4146A7"
+                                       TextWrapping="Wrap"
+                                       Text="Exemple : « T, Ctrl+V, Entrée ». Les déclencheurs souris disponibles sont le bouton du milieu et les deux boutons latéraux." />
+                        </Border>
+
+                        <DataGrid x:Name="ActionSequencesGrid"
+                                  Margin="0,16,0,0"
+                                  MaxHeight="190"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  IsReadOnly="True"
+                                  RowHeaderWidth="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Width="170" Header="Déclencheur" Binding="{Binding TriggerDisplay}" />
+                                <DataGridTextColumn Width="*" Header="Actions" Binding="{Binding ActionsDisplay}" />
+                                <DataGridTemplateColumn Width="185" Header="">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Padding="8,3"
+                                                        Tag="{Binding}"
+                                                        Click="EditActionSequence_Click"
+                                                        Content="Modifier" />
+                                                <Button Margin="6,0,0,0"
+                                                        Padding="8,3"
+                                                        Tag="{Binding}"
+                                                        Click="DeleteActionSequence_Click"
+                                                        Content="Supprimer" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Grid Margin="0,15,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="75" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Text="Pause entre les actions" />
+                            <Slider x:Name="ActionSequenceDelaySlider"
+                                    Grid.Column="1"
+                                    Margin="16,0"
+                                    Minimum="30"
+                                    Maximum="500"
+                                    TickFrequency="10"
+                                    IsSnapToTickEnabled="True"
+                                    Value="80"
+                                    ValueChanged="ActionSequenceDelaySlider_ValueChanged" />
+                            <TextBlock x:Name="ActionSequenceDelayText"
+                                       Grid.Column="2"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Text="80 ms" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Padding="20,11" Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#36B37E" VerticalAlignment="Center" />
+                <TextBlock x:Name="StatusText"
+                           Grid.Column="1"
+                           Margin="9,0,0,0"
+                           Foreground="{StaticResource MutedBrush}"
+                           Text="Prêt"
+                           TextTrimming="CharacterEllipsis" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
