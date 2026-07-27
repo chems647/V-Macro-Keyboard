@@ -4,13 +4,17 @@
              StartupUri="MainWindow.xaml"
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
-        <SolidColorBrush x:Key="PageBrush" Color="#F4F6FA" />
+        <SolidColorBrush x:Key="PageBrush" Color="#F7F5F8" />
         <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="InkBrush" Color="#172033" />
-        <SolidColorBrush x:Key="MutedBrush" Color="#647089" />
-        <SolidColorBrush x:Key="AccentBrush" Color="#5B5FEF" />
-        <SolidColorBrush x:Key="AccentDarkBrush" Color="#474BC9" />
-        <SolidColorBrush x:Key="LineBrush" Color="#E1E5ED" />
+        <SolidColorBrush x:Key="InkBrush" Color="#211929" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#706777" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#D51D3F" />
+        <SolidColorBrush x:Key="AccentDarkBrush" Color="#A91330" />
+        <SolidColorBrush x:Key="VioletBrush" Color="#6E3F90" />
+        <SolidColorBrush x:Key="HeaderBrush" Color="#160E1D" />
+        <SolidColorBrush x:Key="InfoBrush" Color="#F7EFF9" />
+        <SolidColorBrush x:Key="InfoInkBrush" Color="#603477" />
+        <SolidColorBrush x:Key="LineBrush" Color="#E5DFE8" />
 
         <Style TargetType="Window">
             <Setter Property="FontFamily" Value="Segoe UI" />
@@ -39,10 +43,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#F0F2F8" />
+                                <Setter TargetName="Border" Property="Background" Value="#F5F0F6" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#E7EAF2" />
+                                <Setter TargetName="Border" Property="Background" Value="#ECE4EF" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.45" />

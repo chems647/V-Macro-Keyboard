@@ -5,14 +5,18 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>MacroFenetre</AssemblyName>
+    <AssemblyName>VMacroKeyboard</AssemblyName>
     <RootNamespace>MacroFenetre</RootNamespace>
-    <Product>MacroFenêtre</Product>
-    <Description>Bascule ciblée entre fenêtres, macros de clic et séquences clavier/souris.</Description>
-    <Version>0.4.1</Version>
+    <Product>V Macro Keyboard</Product>
+    <Title>V Macro Keyboard</Title>
+    <Description>Macros clavier et souris pour Dofus et les applications Windows.</Description>
+    <ApplicationIcon>Assets\vmacro-app.ico</ApplicationIcon>
+    <Version>0.5.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="tests\**\*.cs" />
+    <Resource Include="Assets\vmacro-app.ico" />
+    <Resource Include="Assets\vmacro-app-icon.png" />
   </ItemGroup>
 </Project>

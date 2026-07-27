@@ -1,7 +1,8 @@
 <Window x:Class="MacroFenetre.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MacroFenêtre"
+        Title="V Macro Keyboard"
+        Icon="Assets/vmacro-app.ico"
         Width="930"
         Height="760"
         MinWidth="760"
@@ -16,20 +17,26 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#172033" Padding="30,22">
+        <Border Grid.Row="0" Background="{StaticResource HeaderBrush}" Padding="28,18">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="MacroFenêtre" Foreground="White" FontSize="25" FontWeight="SemiBold" />
+                <Image Width="68"
+                       Height="68"
+                       Margin="0,0,16,0"
+                       Source="Assets/vmacro-app-icon.png"
+                       Stretch="Uniform" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="V Macro Keyboard" Foreground="White" FontSize="25" FontWeight="SemiBold" />
                     <TextBlock Margin="0,5,0,0"
-                               Text="Changez de fenêtre, déclenchez vos clics et automatisez vos frappes."
-                               Foreground="#BFC7D8"
+                               Text="Pensé pour les joueurs de Dofus, utile dans toutes vos applications Windows."
+                               Foreground="#D7C9DD"
                                FontSize="14" />
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Margin="0,0,8,0"
                             Padding="12,6"
                             Click="LoadConfiguration_Click"
@@ -54,7 +61,7 @@
                 <Border Background="{StaticResource PanelBrush}"
                         BorderBrush="{StaticResource LineBrush}"
                         BorderThickness="1"
-                        CornerRadius="12"
+                        CornerRadius="8"
                         Padding="22">
                     <StackPanel>
                         <Grid>
@@ -172,7 +179,7 @@
                         Background="{StaticResource PanelBrush}"
                         BorderBrush="{StaticResource LineBrush}"
                         BorderThickness="1"
-                        CornerRadius="12"
+                        CornerRadius="8"
                         Padding="22">
                     <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="2. Clics associés à une touche" />
@@ -225,8 +232,8 @@
                                   IsChecked="False"
                                   Content="Appliquer ce clic à toutes les fenêtres sélectionnées du même logiciel" />
 
-                        <Border Margin="0,14,0,0" Padding="12" Background="#F0F1FF" CornerRadius="8">
-                            <TextBlock Foreground="#4146A7"
+                        <Border Margin="0,14,0,0" Padding="12" Background="{StaticResource InfoBrush}" CornerRadius="8">
+                            <TextBlock Foreground="{StaticResource InfoInkBrush}"
                                        TextWrapping="Wrap"
                                        Text="Cliquez dans un champ de touche puis tapez la touche ou combinaison voulue. Pendant « Montrer le point », les autres clics configurés apparaissent sur la cible. Le clic de configuration est intercepté. Échap annule." />
                         </Border>
@@ -304,7 +311,7 @@
                         Background="{StaticResource PanelBrush}"
                         BorderBrush="{StaticResource LineBrush}"
                         BorderThickness="1"
-                        CornerRadius="12"
+                        CornerRadius="8"
                         Padding="22">
                     <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="3. Séquences de touches" />
@@ -363,8 +370,8 @@
                             </StackPanel>
                         </Grid>
 
-                        <Border Margin="0,14,0,0" Padding="12" Background="#F0F1FF" CornerRadius="8">
-                            <TextBlock Foreground="#4146A7"
+                        <Border Margin="0,14,0,0" Padding="12" Background="{StaticResource InfoBrush}" CornerRadius="8">
+                            <TextBlock Foreground="{StaticResource InfoInkBrush}"
                                        TextWrapping="Wrap"
                                        Text="Exemple : « T, Ctrl+V, Entrée ». Les déclencheurs souris disponibles sont le bouton du milieu et les deux boutons latéraux." />
                         </Border>

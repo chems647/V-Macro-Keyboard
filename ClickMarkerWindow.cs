@@ -11,8 +11,8 @@ internal sealed class ClickMarkerWindow : Window
     internal ClickMarkerWindow(double screenX, double screenY, string keyName, bool isExisting)
     {
         var accentColor = isExisting
-            ? Color.FromRgb(91, 95, 239)
-            : Color.FromRgb(239, 68, 68);
+            ? Color.FromRgb(110, 63, 144)
+            : Color.FromRgb(213, 29, 63);
 
         Width = 112;
         Height = 46;

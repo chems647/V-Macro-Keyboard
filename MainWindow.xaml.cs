@@ -84,12 +84,20 @@ public partial class MainWindow : Window
         RefreshWindows();
 
         var restoredConfiguration = false;
-        if (File.Exists(ConfigurationService.AutoSavePath))
+        var autoSavePath = ConfigurationService.FindAutoSavePathToLoad();
+        if (autoSavePath is not null)
         {
             try
             {
-                var configuration = await ConfigurationService.LoadAsync(ConfigurationService.AutoSavePath);
+                var configuration = await ConfigurationService.LoadAsync(autoSavePath);
                 ApplyConfiguration(configuration);
+                if (!autoSavePath.Equals(ConfigurationService.AutoSavePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    await ConfigurationService.SaveAsync(
+                        ConfigurationService.AutoSavePath,
+                        BuildConfiguration());
+                }
+
                 restoredConfiguration = true;
                 SetStatus(
                     $"Sauvegarde restaurée — {_macros.Count} clic(s), {_actionSequences.Count} séquence(s).",
@@ -1369,8 +1377,8 @@ public partial class MainWindow : Window
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Charger un profil MacroFenêtre",
-            Filter = "Profils MacroFenêtre (*.macrofenetre.json)|*.macrofenetre.json|Fichiers JSON (*.json)|*.json|Tous les fichiers (*.*)|*.*",
+            Title = "Charger un profil V Macro Keyboard",
+            Filter = "Profils V Macro Keyboard (*.vmacro.json)|*.vmacro.json|Anciens profils MacroFenêtre (*.macrofenetre.json)|*.macrofenetre.json|Fichiers JSON (*.json)|*.json|Tous les fichiers (*.*)|*.*",
             CheckFileExists = true,
             Multiselect = false
         };
@@ -1405,11 +1413,11 @@ public partial class MainWindow : Window
     {
         var dialog = new SaveFileDialog
         {
-            Title = "Enregistrer le profil MacroFenêtre",
-            Filter = "Profils MacroFenêtre (*.macrofenetre.json)|*.macrofenetre.json|Fichiers JSON (*.json)|*.json",
-            DefaultExt = ".macrofenetre.json",
+            Title = "Enregistrer le profil V Macro Keyboard",
+            Filter = "Profils V Macro Keyboard (*.vmacro.json)|*.vmacro.json|Fichiers JSON (*.json)|*.json",
+            DefaultExt = ".vmacro.json",
             AddExtension = true,
-            FileName = "mes-macros.macrofenetre.json",
+            FileName = "mes-macros.vmacro.json",
             OverwritePrompt = true
         };
 
@@ -1979,7 +1987,7 @@ public partial class MainWindow : Window
             StatusKind.Ready => Color.FromRgb(54, 179, 126),
             StatusKind.Warning => Color.FromRgb(255, 171, 0),
             StatusKind.Error => Color.FromRgb(222, 53, 11),
-            StatusKind.Capture => Color.FromRgb(91, 95, 239),
+            StatusKind.Capture => Color.FromRgb(110, 63, 144),
             _ => Color.FromRgb(100, 112, 137)
         });
     }

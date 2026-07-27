@@ -16,8 +16,20 @@ internal static class ConfigurationService
 
     internal static string AutoSavePath { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "VMacroKeyboard",
+        "autosave.vmacro.json");
+
+    internal static string LegacyAutoSavePath { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "MacroFenetre",
         "autosave.macrofenetre.json");
+
+    internal static string? FindAutoSavePathToLoad() =>
+        File.Exists(AutoSavePath)
+            ? AutoSavePath
+            : File.Exists(LegacyAutoSavePath)
+                ? LegacyAutoSavePath
+                : null;
 
     internal static async Task SaveAsync(
         string path,
@@ -92,7 +104,7 @@ internal static class ConfigurationService
         if (configuration.FormatVersion > MacroConfiguration.CurrentFormatVersion)
         {
             throw new InvalidDataException(
-                $"Ce profil utilise le format {configuration.FormatVersion}, plus récent que celui pris en charge par cette version de MacroFenêtre.");
+                $"Ce profil utilise le format {configuration.FormatVersion}, plus récent que celui pris en charge par cette version de V Macro Keyboard.");
         }
 
         configuration.SwitchKey ??= KeyConfiguration.From(KeyChoice.F8);

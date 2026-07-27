@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test .\tests\MacroFenetre.Tests\MacroFenetre.Tests.csproj --configuration Release
+
+      - name: Publish portable application
+        shell: pwsh
+        run: >
+          dotnet publish .\MacroFenetre.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --output .\dist
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+
+      - name: Upload portable application
+        uses: actions/upload-artifact@v4
+        with:
+          name: VMacroKeyboard-win-x64
+          path: .\dist\VMacroKeyboard.exe
+          retention-days: 7
